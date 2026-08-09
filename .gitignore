@@ -98,6 +98,10 @@ StyleCopReport.xml
 *_i.c
 *_p.c
 *_h.h
+
+# Local configuration
+config.json
+*.secret
 *.ilk
 *.meta
 *.obj

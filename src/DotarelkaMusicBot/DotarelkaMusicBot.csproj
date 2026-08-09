@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DSharpPlus" Version="5.0.0" />
+    <PackageReference Include="DSharpPlus.VoiceNext" Version="5.0.0" />
+  </ItemGroup>
+
 </Project>
