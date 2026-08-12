@@ -1,31 +1,15 @@
-using DSharpPlus;
-using DSharpPlus.VoiceNext;
-using Microsoft.Extensions.Logging;
-using DotarelkaMusicBot.Configuration;
-using DotarelkaMusicBot.SoundCloud;
-using DotarelkaMusicBot.Music;
-using DotarelkaMusicBot.Discord;
 using DotarelkaMusicBot.Services;
 
-var config = await BotConfig.LoadAsync("config.json");
-FFmpegService.EnsureAvailable();
+var ytDlp = new YtDlpService();
 
-var discordConfig = new DiscordConfiguration
-{
-    Token = config.BotToken,
-    TokenType = TokenType.Bot,
-    Intents = DiscordIntents.Guilds | DiscordIntents.GuildMessages | DiscordIntents.GuildVoiceStates | DiscordIntents.MessageContents,
-    AutoReconnect = true,
-    MinimumLogLevel = LogLevel.Information,
-};
+var info = await ytDlp.GetInfoAsync(
+    "ССЫЛКА_НА_SOUNDCLOUD_ТРЕК",
+    CancellationToken.None);
 
-using var client = new DiscordClient(discordConfig);
-client.UseVoiceNext();
+Console.WriteLine($"ID: {info.Id}");
+Console.WriteLine($"Название: {info.Title}");
+Console.WriteLine($"Автор: {info.Uploader}");
+Console.WriteLine($"Длительность: {info.Duration}");
+Console.WriteLine($"Audio URL: {info.Url}");
 
-var soundCloud = new SoundCloudSource(string.IsNullOrWhiteSpace(config.SoundCloudClientId) ? null : config.SoundCloudClientId);
-var musicManager = new MusicManager(soundCloud, client);
-var commandHandler = new CommandHandler(musicManager, config.CommandPrefix);
-var bot = new DiscordBot(client, commandHandler);
-
-await bot.StartAsync();
-await Task.Delay(-1);
+return;
