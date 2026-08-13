@@ -4,6 +4,7 @@ namespace DotarelkaMusicBot.Services;
 
 internal static class FFmpegService
 {
+    public static int DefaultChannels { get; set; } = 2;
     public static void EnsureAvailable()
     {
         try
@@ -49,8 +50,9 @@ internal static class FFmpegService
         psi.ArgumentList.Add("error");
         psi.ArgumentList.Add("-i");
         psi.ArgumentList.Add(inputUrl);
+        psi.ArgumentList.Add("-vn");
         psi.ArgumentList.Add("-ac");
-        psi.ArgumentList.Add("2");
+        psi.ArgumentList.Add(DefaultChannels.ToString());
         psi.ArgumentList.Add("-ar");
         psi.ArgumentList.Add("48000");
         psi.ArgumentList.Add("-f");

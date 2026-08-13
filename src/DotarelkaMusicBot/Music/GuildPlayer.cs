@@ -233,23 +233,25 @@ internal sealed class GuildPlayer
         await using var outputStream = ffmpeg.StandardOutput.BaseStream;
         var transmit = voiceConnection.GetTransmitSink();
 
-        try
-        {
-            await outputStream.CopyToAsync(transmit, 81920, trackCts.Token);
-            await transmit.FlushAsync(trackCts.Token);
-        }
-        finally
-        {
-            if (!ffmpeg.HasExited)
+            try
             {
-                try { ffmpeg.Kill(); } catch { }
+                await outputStream.CopyToAsync(transmit, 81920, trackCts.Token);
+                await transmit.FlushAsync(trackCts.Token);
             }
+            finally
+            {
+                if (!ffmpeg.HasExited)
+                {
+                    try { ffmpeg.Kill(); } catch { }
+                }
 
-            await ffmpeg.WaitForExitAsync();
-            var errorText = await errorRead;
-            if (ffmpeg.ExitCode != 0)
-                Console.Error.WriteLine($"FFmpeg завершился с кодом {ffmpeg.ExitCode}: {errorText.Trim()}");
-        }
+                await ffmpeg.WaitForExitAsync();
+                var errorText = await errorRead;
+                if (!string.IsNullOrWhiteSpace(errorText))
+                    Console.Error.WriteLine($"FFmpeg stderr: {errorText.Trim()} (ExitCode={ffmpeg.ExitCode})");
+                if (ffmpeg.ExitCode != 0)
+                    Console.Error.WriteLine($"FFmpeg завершился с кодом {ffmpeg.ExitCode}");
+            }
 
         if (trackCts.IsCancellationRequested)
             throw new OperationCanceledException(trackCts.Token);

@@ -1,3 +1,5 @@
+using DotarelkaMusicBot.Services;
+
 namespace DotarelkaMusicBot.Music;
 
 internal sealed class Track
@@ -21,6 +23,22 @@ internal sealed class Track
             Author = source.Author,
             Duration = source.Duration,
             Url = source.Url,
+        };
+    }
+
+    public static Track FromYtDlp(YtDlpInfo info)
+    {
+        var id = 0L;
+        if (!string.IsNullOrWhiteSpace(info.Id))
+            long.TryParse(info.Id, out id);
+
+        return new Track
+        {
+            Id = id,
+            Title = info.Title ?? string.Empty,
+            Author = info.Uploader ?? string.Empty,
+            Duration = info.Duration.HasValue ? TimeSpan.FromSeconds(info.Duration.Value) : TimeSpan.Zero,
+            Url = info.WebpageUrl ?? info.Url ?? string.Empty,
         };
     }
 }

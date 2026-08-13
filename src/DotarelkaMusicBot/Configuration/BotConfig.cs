@@ -9,6 +9,7 @@ internal sealed class BotConfig
     public string SoundCloudClientId { get; set; } = string.Empty;
     public string CommandPrefix { get; set; } = "!";
     public string YtDlpExecutable { get; set; } = "yt-dlp";
+    public int AudioChannels { get; set; } = 2;
 
     public static async Task<BotConfig> LoadAsync(string fileName)
     {
@@ -24,6 +25,8 @@ internal sealed class BotConfig
         Guard.NotNullOrWhitespace(config.BotToken, "BotToken не может быть пустым.");
         Guard.NotNullOrWhitespace(config.CommandPrefix, "CommandPrefix не может быть пустым.");
         Guard.NotNullOrWhitespace(config.YtDlpExecutable, "YtDlpExecutable не может быть пустым.");
+        if (config.AudioChannels != 1 && config.AudioChannels != 2)
+            throw new InvalidOperationException("AudioChannels должен быть 1 или 2.");
 
         return config;
     }

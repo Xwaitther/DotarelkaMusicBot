@@ -27,6 +27,25 @@ var soundCloud = new SoundCloudSource(ytDlp, string.IsNullOrWhiteSpace(config.So
 var musicManager = new MusicManager(soundCloud, client);
 var commandHandler = new CommandHandler(musicManager, config.CommandPrefix);
 var bot = new DiscordBot(client, commandHandler);
+// Configure FFmpeg audio channels (1 = mono, 2 = stereo)
+DotarelkaMusicBot.Services.FFmpegService.DefaultChannels = config.AudioChannels;
 
 await bot.StartAsync();
-await Task.Delay(-1);
+
+using var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (s, e) =>
+{
+    e.Cancel = true;
+    cts.Cancel();
+};
+
+try
+{
+    await Task.Delay(-1, cts.Token);
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("Shutting down...");
+    try { await musicManager.ShutdownAsync(); } catch { }
+    try { await client.DisconnectAsync(); } catch { }
+}

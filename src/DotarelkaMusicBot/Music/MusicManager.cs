@@ -40,7 +40,24 @@ internal sealed class MusicManager
         }
 
         await e.Message.RespondAsync("⏳ Ищу трек...");
-        var tracks = await _source.ResolveAsync(argument, CancellationToken.None);
+        using var searchCts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        List<Track> tracks;
+        try
+        {
+            var result = await _source.ResolveAsync(argument, searchCts.Token);
+            tracks = result ?? new List<Track>();
+        }
+        catch (OperationCanceledException)
+        {
+            await e.Message.RespondAsync("❌ Поиск трека занял слишком много времени. Попробуйте снова.");
+            return;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Search error: {ex}");
+            await e.Message.RespondAsync("❌ Произошла ошибка при поиске трека.");
+            return;
+        }
         if (tracks.Count == 0)
         {
             await e.Message.RespondAsync("❌ Не удалось найти трек.");
@@ -227,6 +244,32 @@ internal sealed class MusicManager
         {
             _players.TryGetValue(guildId, out var player);
             return player;
+        }
+        finally
+        {
+            _playersLock.Release();
+        }
+    }
+
+    public async Task ShutdownAsync()
+    {
+        await _playersLock.WaitAsync();
+        try
+        {
+            var leaveTasks = new List<Task>();
+            foreach (var kv in _players)
+            {
+                try
+                {
+                    leaveTasks.Add(kv.Value.LeaveAsync());
+                }
+                catch
+                {
+                }
+            }
+
+            await Task.WhenAll(leaveTasks);
+            _players.Clear();
         }
         finally
         {
