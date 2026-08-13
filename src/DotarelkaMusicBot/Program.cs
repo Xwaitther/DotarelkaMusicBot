@@ -3,7 +3,7 @@ using DotarelkaMusicBot.Services;
 var ytDlp = new YtDlpService();
 
 var info = await ytDlp.GetInfoAsync(
-    "ССЫЛКА_НА_SOUNDCLOUD_ТРЕК",
+    "https://soundcloud.com/brawl-stars-873983974/zhenshhina-ya-ne-tanczuyu-bass",
     CancellationToken.None);
 
 Console.WriteLine($"ID: {info.Id}");
