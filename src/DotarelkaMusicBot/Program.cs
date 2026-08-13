@@ -22,7 +22,8 @@ var discordConfig = new DiscordConfiguration
 using var client = new DiscordClient(discordConfig);
 client.UseVoiceNext();
 
-var soundCloud = new SoundCloudSource(string.IsNullOrWhiteSpace(config.SoundCloudClientId) ? null : config.SoundCloudClientId);
+var ytDlp = new YtDlpService(config.YtDlpExecutable);
+var soundCloud = new SoundCloudSource(ytDlp, string.IsNullOrWhiteSpace(config.SoundCloudClientId) ? null : config.SoundCloudClientId);
 var musicManager = new MusicManager(soundCloud, client);
 var commandHandler = new CommandHandler(musicManager, config.CommandPrefix);
 var bot = new DiscordBot(client, commandHandler);

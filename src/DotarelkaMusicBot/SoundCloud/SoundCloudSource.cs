@@ -1,3 +1,4 @@
+using DotarelkaMusicBot.Services;
 using System.Text.Json;
 using DotarelkaMusicBot.Music;
 
@@ -5,14 +6,21 @@ namespace DotarelkaMusicBot.SoundCloud;
 
 internal sealed class SoundCloudSource : ITrackSource
 {
+    private readonly YtDlpService _ytDlp;
     private const int MaxPlaylistTracks = 50;
     private readonly HttpClient _httpClient = new();
     private readonly string? _clientId;
 
-    public SoundCloudSource(string? clientId = null)
+   public SoundCloudSource(
+    YtDlpService ytDlp,
+    string? clientId = null)
     {
-        _clientId = string.IsNullOrWhiteSpace(clientId) ? null : clientId;
-    }
+        _clientId = string.IsNullOrWhiteSpace(clientId)
+            ? null
+            : clientId;
+
+         _ytDlp = ytDlp;
+    }   
 
     public async Task<List<Track>> ResolveAsync(string input, CancellationToken cancellationToken)
     {
@@ -100,6 +108,22 @@ internal sealed class SoundCloudSource : ITrackSource
 
     public async Task<string?> GetStreamUrlAsync(Track track, CancellationToken cancellationToken)
     {
+        // First, try extracting a direct audio URL via yt-dlp (preferred)
+        try
+        {
+            if (_ytDlp is not null && !string.IsNullOrWhiteSpace(track.Url))
+            {
+                var info = await _ytDlp.GetInfoAsync(track.Url, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(info?.Url))
+                    return info.Url;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"yt-dlp extraction failed: {ex.Message}");
+        }
+
+        // Fallback to SoundCloud API transcodings
         var trackUrl = _clientId is null
             ? $"https://api-v2.soundcloud.com/tracks/{track.Id}"
             : $"https://api-v2.soundcloud.com/tracks/{track.Id}?client_id={_clientId}";

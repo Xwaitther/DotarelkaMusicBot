@@ -8,6 +8,7 @@ internal sealed class BotConfig
     public string BotToken { get; set; } = string.Empty;
     public string SoundCloudClientId { get; set; } = string.Empty;
     public string CommandPrefix { get; set; } = "!";
+    public string YtDlpExecutable { get; set; } = "yt-dlp";
 
     public static async Task<BotConfig> LoadAsync(string fileName)
     {
@@ -22,6 +23,7 @@ internal sealed class BotConfig
         Guard.NotNull(config, $"Конфигурация '{fileName}' некорректна.");
         Guard.NotNullOrWhitespace(config.BotToken, "BotToken не может быть пустым.");
         Guard.NotNullOrWhitespace(config.CommandPrefix, "CommandPrefix не может быть пустым.");
+        Guard.NotNullOrWhitespace(config.YtDlpExecutable, "YtDlpExecutable не может быть пустым.");
 
         return config;
     }

@@ -1,5 +1,6 @@
 {
   "BotToken": "YOUR_DISCORD_BOT_TOKEN_HERE",
   "SoundCloudClientId": "YOUR_SOUNDCLOUD_CLIENT_ID",
+  "YtDlpExecutable": "yt-dlp",
   "CommandPrefix": "!"
 }
