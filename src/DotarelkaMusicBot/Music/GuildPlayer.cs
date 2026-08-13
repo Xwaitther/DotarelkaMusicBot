@@ -235,7 +235,25 @@ internal sealed class GuildPlayer
 
             try
             {
-                await outputStream.CopyToAsync(transmit, 81920, trackCts.Token);
+                var buffer = new byte[81920];
+                long total = 0;
+                var lastLog = DateTime.UtcNow;
+                while (true)
+                {
+                    var read = await outputStream.ReadAsync(buffer.AsMemory(0, buffer.Length), trackCts.Token);
+                    if (read == 0)
+                        break;
+
+                    await transmit.WriteAsync(buffer.AsMemory(0, read), trackCts.Token);
+                    total += read;
+
+                    if ((DateTime.UtcNow - lastLog) > TimeSpan.FromSeconds(2))
+                    {
+                        Console.WriteLine($"Streaming: sent {total} bytes for {track}");
+                        lastLog = DateTime.UtcNow;
+                    }
+                }
+
                 await transmit.FlushAsync(trackCts.Token);
             }
             finally
