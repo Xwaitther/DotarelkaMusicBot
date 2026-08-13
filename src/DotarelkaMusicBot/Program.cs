@@ -1,15 +1,32 @@
+using DSharpPlus;
+using DSharpPlus.VoiceNext;
+using Microsoft.Extensions.Logging;
+using DotarelkaMusicBot.Configuration;
+using DotarelkaMusicBot.SoundCloud;
+using DotarelkaMusicBot.Music;
+using DotarelkaMusicBot.Discord;
 using DotarelkaMusicBot.Services;
 
-var ytDlp = new YtDlpService();
+var config = await BotConfig.LoadAsync("config.json");
+FFmpegService.EnsureAvailable();
 
-var info = await ytDlp.GetInfoAsync(
-    "https://soundcloud.com/brawl-stars-873983974/zhenshhina-ya-ne-tanczuyu-bass",
-    CancellationToken.None);
+var discordConfig = new DiscordConfiguration
+{
+    Token = config.BotToken,
+    TokenType = TokenType.Bot,
+    Intents = DiscordIntents.Guilds | DiscordIntents.GuildMessages | DiscordIntents.GuildVoiceStates | DiscordIntents.MessageContents,
+    AutoReconnect = true,
+    MinimumLogLevel = LogLevel.Information,
+};
 
-Console.WriteLine($"ID: {info.Id}");
-Console.WriteLine($"Название: {info.Title}");
-Console.WriteLine($"Автор: {info.Uploader}");
-Console.WriteLine($"Длительность: {info.Duration}");
-Console.WriteLine($"Audio URL: {info.Url}");
+using var client = new DiscordClient(discordConfig);
+client.UseVoiceNext();
 
-return;
+var ytDlp = new YtDlpService(config.YtDlpExecutable);
+var soundCloud = new SoundCloudSource(ytDlp, string.IsNullOrWhiteSpace(config.SoundCloudClientId) ? null : config.SoundCloudClientId);
+var musicManager = new MusicManager(soundCloud, client);
+var commandHandler = new CommandHandler(musicManager, config.CommandPrefix);
+var bot = new DiscordBot(client, commandHandler);
+
+await bot.StartAsync();
+await Task.Delay(-1);
